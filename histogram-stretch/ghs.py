@@ -248,7 +248,7 @@ class GHS:
         LP_slider.on_changed(update)
         HP_slider.on_changed(update)
             
-        # Create a `matplotlib.widgets.Button` to apply changes or reset the sliders to initial values.
+        # `matplotlib.widgets.Button`
         resetax = fig.add_axes([0.5, 0., 0.1, 0.05])
         button_reset = Button(resetax, 'Reset', hovercolor='0.5')
 

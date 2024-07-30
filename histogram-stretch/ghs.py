@@ -2,7 +2,6 @@ import matplotlib.pyplot as plt
 from matplotlib.widgets import Button, Slider
 import numpy as np
 from PIL import Image
-import math
 
 img = np.asarray(Image.open('linear.tif'))
 
@@ -62,19 +61,19 @@ class GHS:
         
             # Integral GHS    
         elif (b < 0):
-            qlp = -(1 - np.power((1 - D * b * (SP - LP)), 
+            qlp = -(1 - np.sign(1 - D * b * (SP - LP)) * np.power(np.abs(1 - D * b * (SP - LP)), 
                                  (b + 1) / b)) / (b + 1)
-            q0 = qlp - D * LP * (np.power((1 - D * b * (SP - LP)), 1 / b))
-            qwp = -(np.power((1 - D * b * (HP - SP)), 
+            q0 = qlp - D * LP * (np.sign(1 - D * b * (SP - LP)) * np.power(np.abs(1 - D * b * (SP - LP)), 1 / b))
+            qwp = -(np.sign(1 - D * b * (HP - SP)) * np.power(np.abs(1 - D * b * (HP - SP)), 
                              (b + 1) / b) - 1) / (b + 1)
-            q1 = qwp + D * (1 - HP) * np.power((1 - D * b * (HP - SP)),
-                                               1 / b)
+            q1 = qwp + D * (1 - HP) * (np.sign(1 - D * b * (HP - SP)) * np.power(np.abs(1 - D * b * (HP - SP)),
+                                               1 / b))
             q = 1 / (q1 - q0)
             
             # coefficients for img < LP
             self.a1 = 0
-            self.b1 = D * np.power(1 - D * b * (SP - LP),
-                                   1 / b) * q
+            self.b1 = D * (np.sign(1 - D * b * (SP - LP)) * np.power(np.abs(1 - D * b * (SP - LP)),
+                                   1 / b)) * q
             
             # coefficients for LP <= img < SP
             self.a2 = -(1 / (b + 1) + q0) * q
@@ -91,9 +90,9 @@ class GHS:
             self.e3 = (b + 1.0) / b
             
             # coefficients for img > HP
-            self.a4 = (qwp - q0 - D * HP * np.power((1 - D*b*(HP - SP)), 
-                                                    1 / b)) * q
-            self.b4 = D * np.power((1 - D * b * (HP - SP)),1 / b) * q
+            self.a4 = (qwp - q0 - D * HP * (np.sign(1 - D*b*(HP - SP)) * np.power(np.abs(1 - D*b*(HP - SP)), 
+                                                    1 / b))) * q
+            self.b4 = D * (np.sign(1 - D * b * (HP - SP)) * np.power(np.abs(1 - D * b * (HP - SP)),1 / b)) * q
             
         # Exponential GHS
         elif(b ==0):
@@ -127,18 +126,18 @@ class GHS:
             
         # Hyperbolic/Harmonic GHS
         else: # (b > 0)
-            qlp = np.power((1 + D * b * (SP - LP)), -1 / b)
-            q0 = qlp - D * LP * np.power((1 + D * b * (SP - LP)),
-                                         -(1.0 + b) / b)
-            qwp = 2 - np.power(1 + D * b * (HP - SP), -1 / b)
-            q1 = qwp + D * (1 - HP) * np.power((1 + D * b * (HP - SP)),
-                                               -(1 + b) / b)
+            qlp = np.sign(1 + D * b * (SP - LP)) * np.power(np.abs(1 + D * b * (SP - LP)), -1 / b)
+            q0 = qlp - D * LP * (np.sign(1 + D * b * (SP - LP)) * np.power(np.abs(1 + D * b * (SP - LP)),
+                                         -(1.0 + b) / b))
+            qwp = 2 - np.sign(1 + D * b * (HP - SP)) * np.power(np.abs(1 + D * b * (HP - SP)), -1 / b)
+            q1 = qwp + D * (1 - HP) * (np.abs(1 + D * b * (HP - SP)) * np.power(np.abs(1 + D * b * (HP - SP)),
+                                               -(1 + b) / b))
             q = 1 / (q1 - q0)
             
             # coefficients for img < LP
             self.a1 = 0
-            self.b1 = D * np.power((1 + D * b * (SP - LP)), 
-                                   -(1 + b) / b) * q
+            self.b1 = D * (np.sign(1 + D * b * (SP - LP)) * np.power(np.abs(1 + D * b * (SP - LP)), 
+                                   -(1 + b) / b)) * q
             
             # coefficients for LP<=img<SP
             self.a2 = -q0 * q
@@ -155,21 +154,26 @@ class GHS:
             self.e3 = -1 / b
             
             # coessicients for img > HP
-            self.a4 = (qwp-q0-D * HP * np.power((1 + D * b * (HP - SP)), 
-                                                -(b + 1) / b)) * q
-            self.b4 = (D * np.power((1 + D * b * (HP - SP)), 
-                                    -(b + 1) / b)) * q
+            self.a4 = (qwp-q0-D * HP * (np.sign(1 + D * b * (HP - SP)) * np.power(np.abs(1 + D * b * (HP - SP)), 
+                                                -(b + 1) / b))) * q
+            self.b4 = (D * (np.sign(1 + D * b * (HP - SP)) * np.power(np.abs(1 + D * b * (HP - SP)), 
+                                    -(b + 1) / b))) * q
             
             
         
     
-    def ghs(self, b, SP, LP, HP): 
+    def ghs(self, D, b, SP, LP, HP):
+        self.coeffs(D, b, SP, LP, HP)
+        
+        if D ==1e-10:
+            return self.image
+        
         if b == -1:             
             res1 = self.a2 + self.b2 * np.log(self.c2 + self.d2 * self.image)
             res2 = self.a3 + self.b3 * np.log(self.c3 + self.d3 * self.image)
         elif b < 0 or b > 0:
-            res1 = self.a2 + self.b2 * np.power(self.c2 + self.d2 * self.image, self.e2)
-            res2 = self.a3 + self.b3 * np.power(self.c3 + self.d3 * self.image, self.e3)
+            res1 = self.a2 + self.b2 * (np.sign(self.c2 + self.d2 * self.image) * np.power(np.abs(self.c2 + self.d2 * self.image), self.e2))
+            res2 = self.a3 + self.b3 * (np.sign(self.c3 + self.d3 * self.image) * np.power(np.abs(self.c3 + self.d3 * self.image), self.e3))
         else:
             res1 = self.a2 + self.b2 * np.exp(self.c2 + self.d2 * self.image)
             res2 = self.a3 + self.b3 * np.exp(self.c3 + self.d3 * self.image)
@@ -191,8 +195,8 @@ class GHS:
         D_slider = Slider(
             ax=axD,
             label="D ",
-            valmin=1,
-            valmax=10,
+            valmin=1e-10,
+            valmax=50,
             valinit=D
             )
 
@@ -233,8 +237,8 @@ class GHS:
             )
              
         def update(val):
-            self.coeffs(D_slider.val, b_slider.val, SP_slider.val, LP_slider.val, HP_slider.val)
-            ax.imshow(self.ghs(b_slider.val, SP_slider.val, LP_slider.val, HP_slider.val), 
+            #self.coeffs(D_slider.val, b_slider.val, SP_slider.val, LP_slider.val, HP_slider.val)
+            ax.imshow(self.ghs(D_slider.val, b_slider.val, SP_slider.val, LP_slider.val, HP_slider.val), 
                       vmin=0, vmax=1, cmap='gray')
             fig.canvas.draw_idle()
             
@@ -261,20 +265,35 @@ class GHS:
         button_reset.on_clicked(reset)
 
         def apply(event):
-            self.coeffs(D_slider.val, b_slider.val, SP_slider.val, LP_slider.val, HP_slider.val)
-            self.image = self.ghs(b_slider.val, SP_slider.val, LP_slider.val, HP_slider.val)
-            """
+            #self.coeffs(D_slider.val, b_slider.val, SP_slider.val, LP_slider.val, HP_slider.val)
+            self.image = self.ghs(D_slider.val, b_slider.val, SP_slider.val, LP_slider.val, HP_slider.val)
+            
             D_slider.reset()
             b_slider.reset()
             SP_slider.reset()
             LP_slider.reset()
             HP_slider.reset()
-            """
+            
         button_apply.on_clicked(apply)
         
         plt.show()
         
 
-ghs = GHS(img)
-imag = ghs.plot()
+stretch = GHS(img)
+imag = stretch.plot()
+
+#stretch.coeffs(50, 1, 0, 0, 1)
+Ghs = stretch.ghs(50, 10, 0, 0, 1)
+plt.imshow(Ghs)
+
+
+
+
+
+
+
+
+
+
+
             

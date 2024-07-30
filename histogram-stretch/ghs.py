@@ -184,7 +184,7 @@ class GHS:
                                           self.a4 + self.b4 * self.image)))
                                             #return out
                 
-                
+    # matplotlib GUI (slow down precedure)- applying stretch wihout matplotlib widgets is much faster            
     def plot(self, D=0, b=0, SP=0, LP=0, HP=1):
         fig, ax = plt.subplots()
         ax.imshow(self.image, vmin=0, vmax=1, cmap='gray')

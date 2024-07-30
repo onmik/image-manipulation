@@ -15,7 +15,7 @@ class Stretch:
         else:
             out = ((self.image - black) * np.arcsinh(self.image * stretch)) / (self.image * np.arcsinh(stretch))
         return out
-   
+   # matplotlib GUI (slow down precedure)- applying stretch wihout matplotlib widgets is much faster
     def plot_asinh(self, s=0, b=0):
         fig, (ax1, ax2) = plt.subplots(2, height_ratios=[2, 0.5])
         ax1.imshow(self.image, vmin=0, vmax=1, cmap='gray')
@@ -51,7 +51,7 @@ class Stretch:
         stretch_slider.on_changed(update)
         black_slider.on_changed(update)
 
-        # Create a `matplotlib.widgets.Button` to apply changes or reset the sliders to initial values.
+        # matplotlib.widgets.Button
         resetax = fig.add_axes([0.5, 0., 0.1, 0.05])
         button_reset = Button(resetax, 'Reset', hovercolor='0.5')
 
@@ -127,7 +127,7 @@ class Mtf():
         shadows_slider.on_changed(update)
         highlights_slider.on_changed(update)
 
-        # Create a `matplotlib.widgets.Button` to apply changes or reset the sliders to initial values.
+        # `matplotlib.widgets.Button` 
         resetax = fig.add_axes([0.5, 0., 0.1, 0.05])
         button_reset = Button(resetax, 'Reset', hovercolor='0.5')
 

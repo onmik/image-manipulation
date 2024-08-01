@@ -7,13 +7,13 @@ import arithm
 img = np.asarray(Image.open('linear.tif'))
 
 class GHS:
-    def __init__(self, image):
+    def __init__(self, image, stretch):
         self.image = image
+        self.stretch = stretch
         
-    def ghs(self, stretch, D, b, SP, LP, HP):
-        
+    def ghs(self, D, b, SP, LP, HP):        
         # ----------------- normal ghs --------------------------
-        if stretch == 1: 
+        if self.stretch == 1: 
             if b == -1:                       
                 qlp = -1 * np.log1p(D * (SP - LP))
                 q0 = qlp - D * LP / (1 + D * (SP - LP))
@@ -160,7 +160,7 @@ class GHS:
                                              a4 + b4 * self.image)))
         
         #------------------------ inverse ghs --------------------------------
-        elif stretch == 2:
+        elif self.stretch == 2:
             if b == -1:
                 qlp = -1 * np.log1p(D * (SP - LP))
                 q0 = qlp - D * LP / (1 + D * (SP - LP))
@@ -287,8 +287,9 @@ class GHS:
                            np.where(self.image < SPT, res1,
                                     np.where(self.image < HPT, res2,
                                              a4 + b4 * self.image)))
+            
         # ----------------------- modified asinh ----------------------------  
-        elif stretch == 3:
+        elif self.stretch == 3:
             qlp = -np.log(D * (SP - LP) + arithm.pow((D * D * (SP - LP) * (SP - LP) + 1), 0.5))
             q0 = qlp - LP * D * arithm.pow((D * D * (SP - LP) * (SP - LP) + 1), -0.5)
             qwp = np.log(D * (HP - SP) + arithm.pow((D * D * (HP - SP) * (HP - SP) + 1), 0.5))
@@ -312,8 +313,62 @@ class GHS:
             e3 = SP
             a4 = (qwp - HP * D * arithm.pow((D * D * (HP - SP) * (HP - SP) + 1), -0.5) - q0) * q
             b4 = D * arithm.pow((D * D * (HP - SP) * (HP - SP) + 1), -0.5) * q
-
-        
+            
+            if D ==0:
+                out = self.image
+            else:
+                val = c2 * (self.image - e2) + np.sqrt(d2 * (self.image - e2) * (self.image - e2) + 1)
+                res1 = a2 + b2 * np.log(val)
+                val = c3 * (self.image - e3) + np.sqrt(d3 * (self.image - e3) * (self.image - e3) + 1)
+                res2  =a3 + b3 * np.log(val)
+                out = np.where(self.image < LP, a1 + b1 * self.image,
+                               np.where(self.image < SP, res1,
+                                        np.where(self.image < HP, res2, 
+                                                 a4 + b4 * self.image)))
+                
+            # ---------------- inverse modified asinh -------------------------
+        else:
+            qlp = -np.log(D * (SP - LP) + arithm.pow((D * D * (SP - LP) * (SP - LP) + 1.0), 0.5))
+            q0 = qlp - LP * D * arithm.pow((D * D * (SP - LP) * (SP - LP) + 1.0), -0.5)
+            qwp = np.log(D * (HP - SP) + arithm.pow((D * D * (HP - SP) * (HP - SP) + 1.0), 0.5))
+            q1 = qwp + (1.0 - HP) * D * arithm.pow((D * D * (HP - SP) * (HP - SP) +1.0), -0.5)
+            q = 1.0 / (q1 - q0)
+            
+            a1 = 0.0
+            b1 = D * arithm.pow((D * D * (SP - LP) * (SP - LP) + 1.0),-0.5)*q
+            
+            a2 = -q0 * q
+            b2 = -q
+            c2 = -D
+            d2 = D * D
+            e2 = SP
+            
+            a3 = -q0 * q
+            b3 = q
+            c3 = D
+            d3 = D * D
+            e3 = SP
+            
+            a4 = (qwp - HP * D * arithm.pow((D * D * (HP - SP) * (HP - SP) + 1.0), -0.5) - q0) * q
+            b4 = D * arithm.pow((D * D * (HP - SP) * (HP - SP) + 1.0), -0.5) * q
+            
+            LPT = a1 + b1 * LP
+            SPT = a2 + b2 * np.log(c2 * (SP - e2) + np.sqrt(d2 * (SP - e2) * (SP - e2) + 1.0))
+            HPT = a4 + b4 * HP
+            
+            if D == 0:
+                out = self.image
+            else:
+                ex = np.exp((a2 - self.image) / b2)
+                res1 = e2 - (ex - (1.0 / ex)) / (2.0 * c2)
+                ex = np.exp((a3 - self.image) / b3)
+                res2 = e3 - (ex - (1.0 / ex)) / (2.0 * c3)
+                
+                out = np.where((self.image < LPT), (self.image - a1) / b1,
+                               np.where((self.image < SPT), res1,
+                                        np.where((self.image < HPT), res2,
+                                                 (self.image - a4) / b4)))
+                
         return out
                 
     def plot(self, D=0, b=0, SP=0, LP=0, HP=1):
@@ -331,14 +386,6 @@ class GHS:
             valinit=D
             )
 
-        axb = fig.add_axes([0.2, 0.25, 0.6, 0.02])
-        b_slider = Slider(
-            ax=axb,
-            label="b ",
-            valmin=-5,
-            valmax=15,
-            valinit=b
-            )
              
         axSP = fig.add_axes([0.2, 0.2, 0.6, 0.02])
         SP_slider = Slider(
@@ -366,6 +413,16 @@ class GHS:
             valmax=1,
             valinit=HP
             )
+        
+        if self.stretch == 1 or 2:
+            axb = fig.add_axes([0.2, 0.25, 0.6, 0.02])
+            b_slider = Slider(
+                ax=axb,
+                label="b ",
+                valmin=-5,
+                valmax=15,
+                valinit=b
+                )
              
         def update(val):
             #self.coeffs(D_slider.val, b_slider.val, SP_slider.val, LP_slider.val, HP_slider.val)
@@ -410,11 +467,11 @@ class GHS:
         plt.show()
         
 
-stretch = GHS(img)
-imag = stretch.plot()
+stretch = GHS(img, 1)
+imag = stretch.plot(1)
 
 #stretch.coeffs(50, 1, 0, 0, 1)
-Ghs = stretch.ghs(50, 10, 0, 0, 1)
+Ghs = stretch.ghs( 50, 10, 0, 0, 1)
 plt.imshow(Ghs)
 
 

@@ -6,12 +6,13 @@ import arithm
 
 img = np.asarray(Image.open('linear.tif'))
 
-#---------------- Generalised hyperbolic stretch -------------------------------
 class Ghs:
     def __init__(self, image):
         self.image = image
         
     def ghs(self, D, b, SP, LP, HP):        
+        # ----------------- normal ghs --------------------------
+        
         if b == -1:                       
             qlp = -1 * np.log1p(D * (SP - LP))
             q0 = qlp - D * LP / (1 + D * (SP - LP))
@@ -20,20 +21,20 @@ class Ghs:
             q = 1 / (q1 - q0)
             
             b1 = (1 + D * (SP - LP)) / (D * q)
-
+                    
             a2 = (-q0) * q
             b2 = -q
             c2 = 1 + D * SP
             d2 = -D
-
+                
             a3 = (-q) * q
             b3 = q
             c3 = 1 - D * SP
             d3 = D
-
+                
             a4 = (qwp - q0 - D * HP / (1 + D * (HP - SP))) * q
             b4 = q * D / (1 + D * (HP - SP))
-
+             
         elif (b < 0):
             qlp = -(1 - np.sign(1 - D * b * (SP - LP)) * np.power(np.abs(1 - D * b * (SP - LP)), 
                                  (b + 1) / b)) / (b + 1)
@@ -43,50 +44,59 @@ class Ghs:
             q1 = qwp + D * (1 - HP) * (np.sign(1 - D * b * (HP - SP)) * np.power(np.abs(1 - D * b * (HP - SP)),
                                                1 / b))
             q = 1 / (q1 - q0)
-
+                
+            a1 = 0
             b1 = D * (np.sign(1 - D * b * (SP - LP)) * np.power(np.abs(1 - D * b * (SP - LP)),
                                    1 / b)) * q
-
+                
             a2 = -(1 / (b + 1) + q0) * q
             b2 = q / (b + 1)
             c2 = 1 - D * b * SP
             d2 = D * b
             e2 = (b + 1) / b
-
+                
             a3 = (1 / (b + 1) - q0) * q
             b3 = -q / (b + 1)
             c3 = 1 + D * b * SP
             d3 = -D * b
             e3 = (b + 1.0) / b
-
+                
+            # coefficients for img > HP
             a4 = (qwp - q0 - D * HP * (np.sign(1 - D*b*(HP - SP)) * np.power(np.abs(1 - D*b*(HP - SP)), 
                                                     1 / b))) * q
             b4 = D * (np.sign(1 - D * b * (HP - SP)) * np.power(np.abs(1 - D * b * (HP - SP)),1 / b)) * q
-
+                
+        # Exponential GHS
         elif(b ==0):
             qlp = np.exp(-D * (SP - LP))
             q0 = qlp - D * LP * qlp
             qwp = 2 - np.exp(-D * (HP - SP))
             q1 = qwp + D * (1 - HP) * (2 - qwp)
             q = 1 / (q1 - q0)
-
+                
+            # coefficients for img < LP
+            a1 = 0
             b1 = D * qlp * q
-
+                
+            # coefficients for LP <= img < SP
             a2 = -q0 * q
             b2 = q
             c2 = -D * SP
             d2 = D
             e2 = 0
-
+                
+            # coefficients for SP<=img<=HP
             a3 = (2 - q0) * q
             b3 = -q
             c3 = D * SP
             d3 = -D
             e3 = 0
-
+                
+            # coefficients for img > HP
             a4 = (qwp - q0 - D * HP * (2 - qwp)) * q
             b4 = D * (2 - qwp) * q
-
+                
+        # Hyperbolic/Harmonic GHS
         else: # (b > 0)
             qlp = np.sign(1 + D * b * (SP - LP)) * np.power(np.abs(1 + D * b * (SP - LP)), -1 / b)
             q0 = qlp - D * LP * (np.sign(1 + D * b * (SP - LP)) * np.power(np.abs(1 + D * b * (SP - LP)),
@@ -204,7 +214,7 @@ class Ghs:
         HP_slider.on_changed(update)
         if self.ghs.__code__.co_argcount == 4:
             b_slider.on_changed(update)
-
+            
         resetax = fig.add_axes([0.5, 0., 0.1, 0.05])
         button_reset = Button(resetax, 'Reset', hovercolor='0.5')
 
@@ -238,12 +248,12 @@ class Ghs:
         
         plt.show()
 
-        
-#---------------- Inverse generalized hyperbolic stretch ----------------------
 class InverseGhs(Ghs):
     def __init__(self, image):
         super().__init__(image)
+        
     def ghs(self, D, b, SP, LP, HP):
+        
         if b == -1:
             qlp = -1 * np.log1p(D * (SP - LP))
             q0 = qlp - D * LP / (1 + D * (SP - LP))
@@ -254,7 +264,7 @@ class InverseGhs(Ghs):
             LPT = (qlp - q0) * q
             SPT = q0 * q
             HPT = (qwp - q0) * q
-
+            
             b1 = (1 + D * (SP - LP)) / (D * q)
             
             a2 = (1 + D * SP) / D
@@ -370,7 +380,7 @@ class InverseGhs(Ghs):
                                          a4 + b4 * self.image)))  
         return out
 
-# --------------------------- Modified asinh stretch ---------------------------
+
 class Asinh(Ghs):
     def __init__(self, image):
         super().__init__(image)
@@ -412,8 +422,7 @@ class Asinh(Ghs):
                                     np.where(self.image < HP, res2, 
                                              a4 + b4 * self.image)))
         return out
-
-#------------------------ Inverted modified asinh stretch ----------------------    
+    
 class InverseAsinh(Ghs):
     def __init__(self, image):
         super().__init__(image)
@@ -437,6 +446,7 @@ class InverseAsinh(Ghs):
         a3 = -q0 * q
         b3 = q
         c3 = D
+        d3 = D * D
         e3 = SP
         
         a4 = (qwp - HP * D * arithm.pow((D * D * (HP - SP) * (HP - SP) + 1.0), -0.5) - q0) * q

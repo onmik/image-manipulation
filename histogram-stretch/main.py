@@ -13,5 +13,3 @@ ghs_stretch = ghs.Ghs(img)
 imaag = ghs_stretch.plot()
 #print(ghs_stretch.ghs.__code__.co_argcount)
 
-stretch = ghs_2.Ghs(img)
-imag = stretch.plot()

@@ -1,11 +1,12 @@
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Button, Slider
 import numpy as np
-from PIL import Image
 
 class Stretch:
     def __init__(self, image):
         self.image = image
+        #self.x = np.linspace(0, 1 ,100)
+        #self.y = np.linspace(0, 1 ,100)
         
     def AsinhStretch(self, black, stretch):
         if stretch == 0:
@@ -13,15 +14,26 @@ class Stretch:
         else:
             out = ((self.image - black) * np.arcsinh(self.image * stretch)) / (self.image * np.arcsinh(stretch))
         return out
+    
    # matplotlib GUI (slow down precedure)- applying stretch wihout matplotlib widgets is much faster
     def plot_asinh(self, s=0, b=0):
-        fig, (ax1, ax2) = plt.subplots(2, height_ratios=[2, 0.5])
+        fig = plt.figure(figsize=(12, 6))
+        sub = fig.add_gridspec(2,2,width_ratios=[1.8,1])
+        ax1 = fig.add_subplot(sub[:,0])
+        ax2 = fig.add_subplot(sub[0,1])
+        ax3 = fig.add_subplot(sub[1,1])
+        ax4 = fig.add_subplot(sub[0,1])
+        ax3.axis("off")
+        ax4.axis("off")
+        
         ax1.imshow(self.image, vmin=0, vmax=1, cmap='gray')
         ax2.hist(self.image.ravel(), 256, (0, 1))
+        #ax4 = ax2.twinx()
+        #ax4.plot(self.x, self.y)
 
-        fig.subplots_adjust(bottom=0.25)
+        fig.subplots_adjust(bottom=0.1)
 
-        axstretch = fig.add_axes([0.2, 0.15, 0.6, 0.02])
+        axstretch = fig.add_axes([0.63, 0.4, 0.25, 0.02])
         stretch_slider = Slider(
             ax=axstretch,
             label="stretch ",
@@ -30,7 +42,7 @@ class Stretch:
             valinit=s
         )
 
-        axblack = fig.add_axes([0.2, 0.1, 0.6, 0.02])
+        axblack = fig.add_axes([0.63, 0.3, 0.25, 0.02])
         black_slider = Slider(
             ax=axblack,
             label="b ",
@@ -82,13 +94,19 @@ class Mtf():
         return ((midtones - 1) * xp) / ((2 * midtones - 1) * xp - midtones)
     
     def plot_mtf(self, m=0.5, s=0, h=1):
-        fig, (ax1, ax2) = plt.subplots(2, height_ratios=[2, 0.5])
+        
+        fig = plt.figure(figsize=(12, 6))
+        sub = fig.add_gridspec(2,2,width_ratios=[2,1])
+        ax1 = fig.add_subplot(sub[:,0])
+        ax2 = fig.add_subplot(sub[0,1])
+        ax3 = fig.add_subplot(sub[1,1])
+        ax3.axis("off")
         ax1.imshow(self.image, vmin=0, vmax=1, cmap='gray')
         ax2.hist(self.image.ravel(), 256, (0, 1))
 
-        fig.subplots_adjust(bottom=0.25)
+        fig.subplots_adjust(bottom=0.2)
 
-        axmidtones = fig.add_axes([0.2, 0.15, 0.6, 0.02])
+        axmidtones = fig.add_axes([0.63, 0.4, 0.25, 0.02])
         midtones_slider = Slider(
             ax=axmidtones,
             label="midtones ",
@@ -97,7 +115,7 @@ class Mtf():
             valinit=m
         )
 
-        axshadows = fig.add_axes([0.2, 0.1, 0.6, 0.02])
+        axshadows = fig.add_axes([0.63, 0.3, 0.25, 0.02])
         shadows_slider = Slider(
             ax=axshadows,
             label="shadows",
@@ -106,7 +124,7 @@ class Mtf():
             valinit=s
         )
         
-        axhighlights = fig.add_axes([0.2, 0.05, 0.6, 0.02])
+        axhighlights = fig.add_axes([0.63, 0.2, 0.25, 0.02])
         highlights_slider = Slider(
             ax=axhighlights,
             label="highlights",

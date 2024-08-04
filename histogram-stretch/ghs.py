@@ -132,17 +132,23 @@ class Ghs:
     
                 
     def plot(self, D=0, b=0, SP=0, LP=0, HP=1):
-        fig, ax = plt.subplots()
-        ax.imshow(self.image, vmin=0, vmax=1, cmap='gray')
-        
-        fig.subplots_adjust(bottom=0.4)
+        fig = plt.figure(figsize=(12, 6))
+        sub = fig.add_gridspec(2,2,width_ratios=[1.8,1])
+        ax1 = fig.add_subplot(sub[:,0])
+        ax2 = fig.add_subplot(sub[0,1])
+        ax3 = fig.add_subplot(sub[1,1])
+        ax3.axis("off")
+        ax1.imshow(self.image, vmin=0, vmax=1, cmap='gray')
+        ax2.hist(self.image.ravel(), 256, (0, 1))
+
+        fig.subplots_adjust(bottom=0.1)
         
         if self.ghs.__code__.co_argcount == 6:
-            axD = fig.add_axes([0.2, 0.3, 0.6, 0.02])
-            axSP = fig.add_axes([0.2, 0.2, 0.6, 0.02])
-            axLP = fig.add_axes([0.2, 0.15, 0.6, 0.02])
-            axHP = fig.add_axes([0.2, 0.1, 0.6, 0.02])
-            axb = fig.add_axes([0.2, 0.25, 0.6, 0.02])
+            axD = fig.add_axes([0.63, 0.4, 0.25, 0.02])
+            axb = fig.add_axes([0.63, 0.35, 0.25, 0.02])
+            axSP = fig.add_axes([0.63, 0.3, 0.25, 0.02])
+            axLP = fig.add_axes([0.63, 0.25, 0.25, 0.02])
+            axHP = fig.add_axes([0.63, 0.2, 0.25, 0.02])
             
             b_slider = Slider(
                 ax=axb,
@@ -153,10 +159,10 @@ class Ghs:
                 )
             
         else:
-            axD = fig.add_axes([0.2, 0.3, 0.6, 0.02])
-            axSP = fig.add_axes([0.2, 0.25, 0.6, 0.02])
-            axLP = fig.add_axes([0.2, 0.2, 0.6, 0.02])
-            axHP = fig.add_axes([0.2, 0.15, 0.6, 0.02])
+            axD = fig.add_axes([0.63, 0.4, 0.25, 0.02])
+            axSP = fig.add_axes([0.63, 0.35, 0.25, 0.02])
+            axLP = fig.add_axes([0.63, 0.3, 0.25, 0.02])
+            axHP = fig.add_axes([0.63, 0.25, 0.25, 0.02])
         
         
         D_slider = Slider(
@@ -195,11 +201,15 @@ class Ghs:
         
         def update(val):
             if self.ghs.__code__.co_argcount == 6:
-                ax.imshow(self.ghs(D_slider.val, b_slider.val, SP_slider.val, LP_slider.val, HP_slider.val), 
+                ax2.cla()
+                ax1.imshow(self.ghs(D_slider.val, b_slider.val, SP_slider.val, LP_slider.val, HP_slider.val), 
                           vmin=0, vmax=1, cmap='gray')
+                ax2.hist(self.ghs(D_slider.val, b_slider.val, SP_slider.val, LP_slider.val, HP_slider.val).ravel(), 256, (0, 1))
             else:
-                ax.imshow(self.ghs(D_slider.val, SP_slider.val, LP_slider.val, HP_slider.val), 
+                ax2.cla()
+                ax1.imshow(self.ghs(D_slider.val, SP_slider.val, LP_slider.val, HP_slider.val), 
                           vmin=0, vmax=1, cmap='gray')
+                ax2.hist(self.ghs(D_slider.val, SP_slider.val, LP_slider.val, HP_slider.val).ravel(), 256, (0, 1))
 
             fig.canvas.draw_idle()
         
@@ -467,11 +477,6 @@ class InverseAsinh(Ghs):
                                              (self.image - a4) / b4)))
 
         
-"""
-stretch = Ghs()
-Ghs = stretch.ghs( 50, 10, 0, 0, 1)
-plt.imshow(Ghs)
-"""
 
 
 

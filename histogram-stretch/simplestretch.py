@@ -3,8 +3,6 @@ from matplotlib.widgets import Button, Slider
 import numpy as np
 from PIL import Image
 
-img = np.asarray(Image.open('linear.tif'))
-
 class Stretch:
     def __init__(self, image):
         self.image = image
@@ -151,10 +149,4 @@ class Mtf():
         
         plt.show()
         return self.image
-
-anh = Stretch(img)
-imag = anh.plot_asinh()
-
-mtf = Mtf(img)
-mt = mtf.plot_mtf()
 

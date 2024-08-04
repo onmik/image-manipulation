@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Button, Slider
 import numpy as np
-from PIL import Image
 import arithm
 
 #---------------- Generalised hyperbolic stretch -------------------------------

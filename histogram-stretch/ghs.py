@@ -7,10 +7,16 @@ import arithm
 class Ghs:
     def __init__(self, image):
         self.image = image
+        self.x = np.linspace(0, 1 ,100)
         
-    def ghs(self, D, b, SP, LP, HP):  
+    def ghs(self, D, b, SP, LP, HP, plot=False):
+        if plot:
+            image = self.x
+        else: 
+            image = self.image
+        
         if D == 0:
-            return self.image
+            return image
         elif b == -1:                       
             qlp = -1 * np.log1p(D * (SP - LP))
             q0 = qlp - D * LP / (1 + D * (SP - LP))
@@ -116,19 +122,19 @@ class Ghs:
                                     -(b + 1) / b))) * q
               
         if b == -1:             
-            res1 = a2 + b2 * np.log(c2 + d2 * self.image)
-            res2 = a3 + b3 * np.log(c3 + d3 * self.image)
+            res1 = a2 + b2 * np.log(c2 + d2 * image)
+            res2 = a3 + b3 * np.log(c3 + d3 * image)
         elif b < 0 or b > 0:
-            res1 = a2 + b2 * (np.sign(c2 + d2 * self.image) * np.power(np.abs(c2 + d2 * self.image), e2))
-            res2 = a3 + b3 * (np.sign(c3 + d3 * self.image) * np.power(np.abs(c3 + d3 * self.image), e3))
+            res1 = a2 + b2 * (np.sign(c2 + d2 * image) * np.power(np.abs(c2 + d2 * image), e2))
+            res2 = a3 + b3 * (np.sign(c3 + d3 * image) * np.power(np.abs(c3 + d3 * image), e3))
         else:
-            res1 = a2 + b2 * np.exp(c2 + d2 * self.image)
-            res2 = a3 + b3 * np.exp(c3 + d3 * self.image)
+            res1 = a2 + b2 * np.exp(c2 + d2 * image)
+            res2 = a3 + b3 * np.exp(c3 + d3 * image)
                           
-        return np.where(self.image < LP, b1 * self.image, 
-                        np.where(self.image < SP, res1, 
-                                 np.where(self.image < HP, res2,
-                                          a4 + b4 * self.image)))
+        return np.where(image < LP, b1 * image, 
+                        np.where(image < SP, res1, 
+                                 np.where(image < HP, res2,
+                                          a4 + b4 * image)))
     
                 
     def plot(self, D=0, b=0, SP=0, LP=0, HP=1):
@@ -137,13 +143,21 @@ class Ghs:
         ax1 = fig.add_subplot(sub[:,0])
         ax2 = fig.add_subplot(sub[0,1])
         ax3 = fig.add_subplot(sub[1,1])
+        ax4 = fig.add_subplot(sub[0,1])
+        ax5 = fig.add_subplot(sub[0,1])
         ax3.axis("off")
+        ax4.axis("off")
+        ax5.axis("off")
+        
         ax1.imshow(self.image, vmin=0, vmax=1, cmap='gray')
         ax2.hist(self.image.ravel(), 256, (0, 1))
+        ax4 = ax2.twinx()
+        ax4.plot(self.x, self.x)
+        ax5.plot(self.x, self.x)
 
         fig.subplots_adjust(bottom=0.1)
         
-        if self.ghs.__code__.co_argcount == 6:
+        if self.ghs.__code__.co_argcount == 7:
             axD = fig.add_axes([0.63, 0.4, 0.25, 0.02])
             axb = fig.add_axes([0.63, 0.35, 0.25, 0.02])
             axSP = fig.add_axes([0.63, 0.3, 0.25, 0.02])
@@ -200,16 +214,20 @@ class Ghs:
         
         
         def update(val):
-            if self.ghs.__code__.co_argcount == 6:
+            if self.ghs.__code__.co_argcount == 7:
                 ax2.cla()
                 ax1.imshow(self.ghs(D_slider.val, b_slider.val, SP_slider.val, LP_slider.val, HP_slider.val), 
                           vmin=0, vmax=1, cmap='gray')
                 ax2.hist(self.ghs(D_slider.val, b_slider.val, SP_slider.val, LP_slider.val, HP_slider.val).ravel(), 256, (0, 1))
+                ax4.cla()
+                ax4.plot(self.x, self.ghs(D_slider.val, b_slider.val, SP_slider.val, LP_slider.val, HP_slider.val, True))
             else:
                 ax2.cla()
                 ax1.imshow(self.ghs(D_slider.val, SP_slider.val, LP_slider.val, HP_slider.val), 
                           vmin=0, vmax=1, cmap='gray')
                 ax2.hist(self.ghs(D_slider.val, SP_slider.val, LP_slider.val, HP_slider.val).ravel(), 256, (0, 1))
+                ax4.cla()
+                ax4.plot(self.x, self.ghs(D_slider.val, SP_slider.val, LP_slider.val, HP_slider.val, True))
 
             fig.canvas.draw_idle()
         
@@ -217,7 +235,7 @@ class Ghs:
         SP_slider.on_changed(update)
         LP_slider.on_changed(update)
         HP_slider.on_changed(update)
-        if self.ghs.__code__.co_argcount == 6:
+        if self.ghs.__code__.co_argcount == 7:
             b_slider.on_changed(update)
 
         resetax = fig.add_axes([0.5, 0., 0.1, 0.05])
@@ -231,13 +249,13 @@ class Ghs:
             SP_slider.reset()
             LP_slider.reset()
             HP_slider.reset()
-            if self.ghs.__code__.co_argcount == 6:
+            if self.ghs.__code__.co_argcount == 7:
                 b_slider.reset()
             
         button_reset.on_clicked(reset)
 
         def apply(event):
-            if self.ghs.__code__.co_argcount == 6:
+            if self.ghs.__code__.co_argcount == 7:
                 self.image = self.ghs(D_slider.val, b_slider.val, SP_slider.val, LP_slider.val, HP_slider.val)
                 b_slider.reset()
             else:
@@ -257,10 +275,15 @@ class Ghs:
 class InverseGhs(Ghs):
     def __init__(self, image):
         super().__init__(image)
-    def ghs(self, D, b, SP, LP, HP):
         
+    def ghs(self, D, b, SP, LP, HP, plot=False):
+        if plot:
+            image = self.x
+        else: 
+            image = self.image
+            
         if D == 0:
-            return self.image
+            return image
         
         elif b == -1:
             qlp = -1 * np.log1p(D * (SP - LP))
@@ -371,29 +394,33 @@ class InverseGhs(Ghs):
             b4 = 1/((D * arithm.pow((1 + D * b * (HP - SP)), -(b + 1) / b)) * q)
             
         if b == -1:
-            res1 = a2 + b2 * np.exp(c2 + d2 * self.image)
-            res2 = a3 + b3 * np.exp(c3 + d3 * self.image)
+            res1 = a2 + b2 * np.exp(c2 + d2 * image)
+            res2 = a3 + b3 * np.exp(c3 + d3 * image)
         elif b < 0 or b > 0:
-            res1 = a2 + b2 * arithm.pow(c2 + d2 * self.image, e2)
-            res2 = a3 + b3 * arithm.pow(c3 + d3 * self.image, e3)
+            res1 = a2 + b2 * arithm.pow(c2 + d2 * image, e2)
+            res2 = a3 + b3 * arithm.pow(c3 + d3 * image, e3)
         else:
-            res1 = a2 + b2 * np.log(c2 + d2 * self.image)
-            res2 = a3 + b3 * np.log(c3 + d3 * self.image)  
+            res1 = a2 + b2 * np.log(c2 + d2 * image)
+            res2 = a3 + b3 * np.log(c3 + d3 * image)  
         
-        return np.where(self.image < LPT, b1 * self.image,
-                        np.where(self.image < SPT, res1,
-                                 np.where(self.image < HPT, res2,
-                                          a4 + b4 * self.image)))
+        return np.where(image < LPT, b1 * image,
+                        np.where(image < SPT, res1,
+                                 np.where(image < HPT, res2,
+                                          a4 + b4 * image)))
 
 # --------------------------- Modified asinh stretch ---------------------------
 class Asinh(Ghs):
     def __init__(self, image):
         super().__init__(image)
         
-    def ghs(self, D, SP, LP, HP):
+    def ghs(self, D, SP, LP, HP, plot=False):
+        if plot:
+            image = self.x
+        else: 
+            image = self.image
         
         if D ==0:
-            return self.image
+            return image
         else:
             qlp = -np.log(D * (SP - LP) + arithm.pow((D * D * (SP - LP) * (SP - LP) + 1), 0.5))
             q0 = qlp - LP * D * arithm.pow((D * D * (SP - LP) * (SP - LP) + 1), -0.5)
@@ -420,24 +447,29 @@ class Asinh(Ghs):
             b4 = D * arithm.pow((D * D * (HP - SP) * (HP - SP) + 1), -0.5) * q
         
         
-            val = c2 * (self.image - e2) + np.sqrt(d2 * (self.image - e2) * (self.image - e2) + 1)
+            val = c2 * (image - e2) + np.sqrt(d2 * (image - e2) * (image - e2) + 1)
             res1 = a2 + b2 * np.log(val)
-            val = c3 * (self.image - e3) + np.sqrt(d3 * (self.image - e3) * (self.image - e3) + 1)
+            val = c3 * (image - e3) + np.sqrt(d3 * (image - e3) * (image - e3) + 1)
             res2  =a3 + b3 * np.log(val)
             
-            return np.where(self.image < LP, a1 + b1 * self.image,
-                           np.where(self.image < SP, res1,
-                                    np.where(self.image < HP, res2, 
-                                             a4 + b4 * self.image)))
+            return np.where(image < LP, a1 + b1 * image,
+                           np.where(image < SP, res1,
+                                    np.where(image < HP, res2, 
+                                             a4 + b4 * image)))
 
 #------------------------ Inverted modified asinh stretch ----------------------    
 class InverseAsinh(Ghs):
     def __init__(self, image):
         super().__init__(image)
         
-    def ghs(self, D, SP, LP, HP):
+    def ghs(self, D, SP, LP, HP, plot=False):
+        if plot:
+            image = self.x
+        else: 
+            image = self.image
+            
         if D == 0:
-            return self.image
+            return image
         else:
             qlp = -np.log(D * (SP - LP) + arithm.pow((D * D * (SP - LP) * (SP - LP) + 1.0), 0.5))
             q0 = qlp - LP * D * arithm.pow((D * D * (SP - LP) * (SP - LP) + 1.0), -0.5)
@@ -471,10 +503,10 @@ class InverseAsinh(Ghs):
             ex = np.exp((a3 - self.image) / b3)
             res2 = e3 - (ex - (1.0 / ex)) / (2.0 * c3)
             
-            return np.where((self.image < LPT), (self.image - a1) / b1,
-                           np.where((self.image < SPT), res1,
-                                    np.where((self.image < HPT), res2,
-                                             (self.image - a4) / b4)))
+            return np.where((image < LPT), (image - a1) / b1,
+                           np.where((image < SPT), res1,
+                                    np.where((image < HPT), res2,
+                                             (image - a4) / b4)))
 
         
 

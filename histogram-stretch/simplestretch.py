@@ -2,17 +2,21 @@ import matplotlib.pyplot as plt
 from matplotlib.widgets import Button, Slider
 import numpy as np
 
-class Stretch:
+class AsinhStretch:
     def __init__(self, image):
         self.image = image
-        #self.x = np.linspace(0, 1 ,100)
-        #self.y = np.linspace(0, 1 ,100)
+        self.x = np.linspace(0, 1 ,100)
         
-    def AsinhStretch(self, black, stretch):
-        if stretch == 0:
-            out = self.image
+    def asinh(self, black, stretch, plot=False):
+        if plot:
+            image = self.x
         else:
-            out = ((self.image - black) * np.arcsinh(self.image * stretch)) / (self.image * np.arcsinh(stretch))
+            image = self.image
+        
+        if stretch == 0:
+            out = image
+        else:
+            out = ((image - black) * np.arcsinh(image * stretch)) / (image * np.arcsinh(stretch))
         return out
     
    # matplotlib GUI (slow down precedure)- applying stretch wihout matplotlib widgets is much faster
@@ -23,13 +27,16 @@ class Stretch:
         ax2 = fig.add_subplot(sub[0,1])
         ax3 = fig.add_subplot(sub[1,1])
         ax4 = fig.add_subplot(sub[0,1])
+        ax5 = fig.add_subplot(sub[0,1])
         ax3.axis("off")
         ax4.axis("off")
+        ax5.axis("off")
         
         ax1.imshow(self.image, vmin=0, vmax=1, cmap='gray')
         ax2.hist(self.image.ravel(), 256, (0, 1))
-        #ax4 = ax2.twinx()
-        #ax4.plot(self.x, self.y)
+        ax4 = ax2.twinx()
+        ax4.plot(self.x, self.x)
+        ax5.plot(self.x, self.x)
 
         fig.subplots_adjust(bottom=0.1)
 
@@ -54,8 +61,10 @@ class Stretch:
         
         def update(val):
             ax2.cla()
-            ax1.imshow(self.AsinhStretch(black_slider.val, stretch_slider.val), vmin=0, vmax=1, cmap='gray')
-            ax2.hist(self.AsinhStretch(black_slider.val, stretch_slider.val).ravel(), 256, (0, 1))
+            ax1.imshow(self.asinh(black_slider.val, stretch_slider.val), vmin=0, vmax=1, cmap='gray')
+            ax2.hist(self.asinh(black_slider.val, stretch_slider.val).ravel(), 256, (0, 1))
+            ax4.cla()
+            ax4.plot(self.x, self.asinh(black_slider.val, stretch_slider.val, True))
             fig.canvas.draw_idle()
             
         stretch_slider.on_changed(update)
@@ -75,7 +84,7 @@ class Stretch:
         button_reset.on_clicked(reset)
 
         def apply(event):
-            self.image = self.AsinhStretch(black_slider.val, stretch_slider.val)
+            self.image = self.asinh(black_slider.val, stretch_slider.val)
             stretch_slider.reset()
             black_slider.reset()
 
@@ -88,23 +97,36 @@ class Stretch:
 class Mtf():
     def __init__(self, image):
         self.image = image
+        self.x = np.linspace(0, 1 ,100)
     
-    def mtf(self, midtones, shadows, highlights):
-        xp = (self.image - shadows) / (highlights - shadows)
+    def mtf(self, midtones, shadows, highlights, plot=False):
+        if plot:
+            image = self.x
+        else:
+            image = self.image
+            
+        xp = (image - shadows) / (highlights - shadows)
         return ((midtones - 1) * xp) / ((2 * midtones - 1) * xp - midtones)
     
     def plot_mtf(self, m=0.5, s=0, h=1):
-        
         fig = plt.figure(figsize=(12, 6))
-        sub = fig.add_gridspec(2,2,width_ratios=[2,1])
+        sub = fig.add_gridspec(2,2,width_ratios=[1.8,1])
         ax1 = fig.add_subplot(sub[:,0])
         ax2 = fig.add_subplot(sub[0,1])
         ax3 = fig.add_subplot(sub[1,1])
+        ax4 = fig.add_subplot(sub[0,1])
+        ax5 = fig.add_subplot(sub[0,1])
         ax3.axis("off")
+        ax4.axis("off")
+        ax5.axis("off")
+        
         ax1.imshow(self.image, vmin=0, vmax=1, cmap='gray')
         ax2.hist(self.image.ravel(), 256, (0, 1))
+        ax4 = ax2.twinx()
+        ax4.plot(self.x, self.x)
+        ax5.plot(self.x, self.x)
 
-        fig.subplots_adjust(bottom=0.2)
+        fig.subplots_adjust(bottom=0.1)
 
         axmidtones = fig.add_axes([0.63, 0.4, 0.25, 0.02])
         midtones_slider = Slider(
@@ -137,6 +159,9 @@ class Mtf():
             ax2.cla()
             ax1.imshow(self.mtf(midtones_slider.val, shadows_slider.val, highlights_slider.val), vmin=0, vmax=1, cmap='gray')
             ax2.hist(self.mtf(midtones_slider.val, shadows_slider.val, highlights_slider.val).ravel(), 256, (0, 1))
+            ax4.cla()
+            ax4.plot(self.x, self.mtf(midtones_slider.val, shadows_slider.val, highlights_slider.val, True))
+            
             fig.canvas.draw_idle()
             
         midtones_slider.on_changed(update)

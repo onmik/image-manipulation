@@ -40,17 +40,13 @@ class Ghs:
             b4 = q * D / (1 + D * (HP - SP))
 
         elif (b < 0):
-            qlp = -(1 - np.sign(1 - D * b * (SP - LP)) * np.power(np.abs(1 - D * b * (SP - LP)), 
-                                 (b + 1) / b)) / (b + 1)
-            q0 = qlp - D * LP * (np.sign(1 - D * b * (SP - LP)) * np.power(np.abs(1 - D * b * (SP - LP)), 1 / b))
-            qwp = -(np.sign(1 - D * b * (HP - SP)) * np.power(np.abs(1 - D * b * (HP - SP)), 
-                             (b + 1) / b) - 1) / (b + 1)
-            q1 = qwp + D * (1 - HP) * (np.sign(1 - D * b * (HP - SP)) * np.power(np.abs(1 - D * b * (HP - SP)),
-                                               1 / b))
+            qlp = -(1 - arithm.pow((1 - D * b * (SP - LP)), (b + 1) / b)) / (b + 1)
+            q0 = qlp - D * LP * (arithm.pow((1 - D * b * (SP - LP)), 1 / b))
+            qwp = -(arithm.pow((1 - D * b * (HP - SP)), (b + 1) / b) - 1) / (b + 1)
+            q1 = qwp + D * (1 - HP) * (arithm.pow((1 - D * b * (HP - SP)), 1 / b))
             q = 1 / (q1 - q0)
 
-            b1 = D * (np.sign(1 - D * b * (SP - LP)) * np.power(np.abs(1 - D * b * (SP - LP)),
-                                   1 / b)) * q
+            b1 = D * arithm.pow(1 - D * b * (SP - LP),1 / b) * q
 
             a2 = -(1 / (b + 1) + q0) * q
             b2 = q / (b + 1)
@@ -64,11 +60,10 @@ class Ghs:
             d3 = -D * b
             e3 = (b + 1.0) / b
 
-            a4 = (qwp - q0 - D * HP * (np.sign(1 - D*b*(HP - SP)) * np.power(np.abs(1 - D*b*(HP - SP)), 
-                                                    1 / b))) * q
-            b4 = D * (np.sign(1 - D * b * (HP - SP)) * np.power(np.abs(1 - D * b * (HP - SP)),1 / b)) * q
+            a4 = (qwp - q0 - D * HP * arithm.pow((1 - D*b*(HP - SP)), 1 / b)) * q
+            b4 = D * arithm.pow((1 - D * b * (HP - SP)),1 / b) * q
 
-        elif(b ==0):
+        elif(b == 0):
             qlp = np.exp(-D * (SP - LP))
             q0 = qlp - D * LP * qlp
             qwp = 2 - np.exp(-D * (HP - SP))
@@ -93,16 +88,13 @@ class Ghs:
             b4 = D * (2 - qwp) * q
 
         else: # (b > 0)
-            qlp = np.sign(1 + D * b * (SP - LP)) * np.power(np.abs(1 + D * b * (SP - LP)), -1 / b)
-            q0 = qlp - D * LP * (np.sign(1 + D * b * (SP - LP)) * np.power(np.abs(1 + D * b * (SP - LP)),
-                                         -(1.0 + b) / b))
-            qwp = 2 - np.sign(1 + D * b * (HP - SP)) * np.power(np.abs(1 + D * b * (HP - SP)), -1 / b)
-            q1 = qwp + D * (1 - HP) * (np.abs(1 + D * b * (HP - SP)) * np.power(np.abs(1 + D * b * (HP - SP)),
-                                                                                -(1 + b) / b))
+            qlp = arithm.pow((1 + D * b * (SP - LP)), -1 / b)
+            q0 = qlp - D * LP * arithm.pow((1 + D * b * (SP - LP)), -(1.0 + b) / b)
+            qwp = 2 - arithm.pow(1 + D * b * (HP - SP), -1 / b)
+            q1 = qwp + D * (1 - HP) * arithm.pow((1 + D * b * (HP - SP)), -(1 + b) / b)
             q = 1 / (q1 - q0)
                     
-            b1 = D * (np.sign(1 + D * b * (SP - LP)) * np.power(np.abs(1 + D * b * (SP - LP)), 
-                                                                -(1 + b) / b)) * q
+            b1 = D * arithm.pow((1 + D * b * (SP - LP)), -(1 + b) / b) * q
                 
             a2 = -q0 * q
             b2 = q
@@ -116,14 +108,12 @@ class Ghs:
             d3 = D * b
             e3 = -1 / b
                 
-            a4 = (qwp-q0-D * HP * (np.sign(1 + D * b * (HP - SP)) * np.power(np.abs(1 + D * b * (HP - SP)), 
-                                     -(b + 1) / b))) * q
-            b4 = (D * (np.sign(1 + D * b * (HP - SP)) * np.power(np.abs(1 + D * b * (HP - SP)), 
-                                    -(b + 1) / b))) * q
+            a4 = (qwp-q0-D * HP * arithm.pow((1 + D * b * (HP - SP)), -(b + 1) / b)) * q
+            b4 = (D * arithm.pow((1 + D * b * (HP - SP)), -(b + 1) / b)) * q
               
         if b == -1:             
-            res1 = a2 + b2 * np.log(c2 + d2 * image)
-            res2 = a3 + b3 * np.log(c3 + d3 * image)
+            res1 = a2 + b2 * np.log(arithm.inval(c2 + d2 * image))
+            res2 = a3 + b3 * np.log(arithm.inval(c3 + d3 * image))
         elif b < 0 or b > 0:
             res1 = a2 + b2 * (np.sign(c2 + d2 * image) * np.power(np.abs(c2 + d2 * image), e2))
             res2 = a3 + b3 * (np.sign(c3 + d3 * image) * np.power(np.abs(c3 + d3 * image), e3))
@@ -152,17 +142,17 @@ class Ghs:
         ax1.imshow(self.image, vmin=0, vmax=1, cmap='gray')
         ax2.hist(self.image.ravel(), 256, (0, 1))
         ax4 = ax2.twinx()
-        ax4.plot(self.x, self.x)
-        ax5.plot(self.x, self.x)
+        ax4.plot(self.x, self.x, linewidth=1, color='red')
+        ax5.plot(self.x, self.x, linewidth=0.5, color='black')
 
         fig.subplots_adjust(bottom=0.1)
         
         if self.ghs.__code__.co_argcount == 7:
-            axD = fig.add_axes([0.63, 0.4, 0.25, 0.02])
-            axb = fig.add_axes([0.63, 0.35, 0.25, 0.02])
-            axSP = fig.add_axes([0.63, 0.3, 0.25, 0.02])
-            axLP = fig.add_axes([0.63, 0.25, 0.25, 0.02])
-            axHP = fig.add_axes([0.63, 0.2, 0.25, 0.02])
+            axD = fig.add_axes([0.65, 0.4, 0.25, 0.02])
+            axb = fig.add_axes([0.65, 0.35, 0.25, 0.02])
+            axSP = fig.add_axes([0.65, 0.3, 0.25, 0.02])
+            axLP = fig.add_axes([0.65, 0.25, 0.25, 0.02])
+            axHP = fig.add_axes([0.65, 0.2, 0.25, 0.02])
             
             b_slider = Slider(
                 ax=axb,
@@ -173,15 +163,15 @@ class Ghs:
                 )
             
         else:
-            axD = fig.add_axes([0.63, 0.4, 0.25, 0.02])
-            axSP = fig.add_axes([0.63, 0.35, 0.25, 0.02])
-            axLP = fig.add_axes([0.63, 0.3, 0.25, 0.02])
-            axHP = fig.add_axes([0.63, 0.25, 0.25, 0.02])
+            axD = fig.add_axes([0.65, 0.4, 0.25, 0.02])
+            axSP = fig.add_axes([0.65, 0.35, 0.25, 0.02])
+            axLP = fig.add_axes([0.65, 0.3, 0.25, 0.02])
+            axHP = fig.add_axes([0.65, 0.25, 0.25, 0.02])
         
         
         D_slider = Slider(
             ax=axD,
-            label="D ",
+            label="ln(D + 1) ",
             valmin=0,
             valmax=50,
             valinit=D
@@ -216,18 +206,18 @@ class Ghs:
         def update(val):
             if self.ghs.__code__.co_argcount == 7:
                 ax2.cla()
-                ax1.imshow(self.ghs(D_slider.val, b_slider.val, SP_slider.val, LP_slider.val, HP_slider.val), 
+                ax1.imshow(self.ghs(np.expm1(D_slider.val), b_slider.val, SP_slider.val, LP_slider.val, HP_slider.val), 
                           vmin=0, vmax=1, cmap='gray')
-                ax2.hist(self.ghs(D_slider.val, b_slider.val, SP_slider.val, LP_slider.val, HP_slider.val).ravel(), 256, (0, 1))
+                ax2.hist(self.ghs(np.expm1(D_slider.val), b_slider.val, SP_slider.val, LP_slider.val, HP_slider.val).ravel(), 256, (0, 1))
                 ax4.cla()
-                ax4.plot(self.x, self.ghs(D_slider.val, b_slider.val, SP_slider.val, LP_slider.val, HP_slider.val, True))
+                ax4.plot(self.x, self.ghs(np.expm1(D_slider.val), b_slider.val, SP_slider.val, LP_slider.val, HP_slider.val, True), linewidth=1, color='red')
             else:
                 ax2.cla()
-                ax1.imshow(self.ghs(D_slider.val, SP_slider.val, LP_slider.val, HP_slider.val), 
+                ax1.imshow(self.ghs(np.expm1(D_slider.val), SP_slider.val, LP_slider.val, HP_slider.val), 
                           vmin=0, vmax=1, cmap='gray')
-                ax2.hist(self.ghs(D_slider.val, SP_slider.val, LP_slider.val, HP_slider.val).ravel(), 256, (0, 1))
+                ax2.hist(self.ghs(np.expm1(D_slider.val), SP_slider.val, LP_slider.val, HP_slider.val).ravel(), 256, (0, 1))
                 ax4.cla()
-                ax4.plot(self.x, self.ghs(D_slider.val, SP_slider.val, LP_slider.val, HP_slider.val, True))
+                ax4.plot(self.x, self.ghs(np.expm1(D_slider.val), SP_slider.val, LP_slider.val, HP_slider.val, True), linewidth=1, color='red')
 
             fig.canvas.draw_idle()
         
@@ -256,10 +246,10 @@ class Ghs:
 
         def apply(event):
             if self.ghs.__code__.co_argcount == 7:
-                self.image = self.ghs(D_slider.val, b_slider.val, SP_slider.val, LP_slider.val, HP_slider.val)
+                self.image = self.ghs(np.expm1(D_slider.val), b_slider.val, SP_slider.val, LP_slider.val, HP_slider.val)
                 b_slider.reset()
             else:
-                self.image = self.ghs(D_slider.val, SP_slider.val, LP_slider.val, HP_slider.val)
+                self.image = self.ghs(np.expm1(D_slider.val), SP_slider.val, LP_slider.val, HP_slider.val)
 
             D_slider.reset()
             SP_slider.reset()
@@ -447,9 +437,9 @@ class Asinh(Ghs):
             b4 = D * arithm.pow((D * D * (HP - SP) * (HP - SP) + 1), -0.5) * q
         
         
-            val = c2 * (image - e2) + np.sqrt(d2 * (image - e2) * (image - e2) + 1)
+            val = arithm.inval(c2 * (image - e2) + np.sqrt(d2 * (image - e2) * (image - e2) + 1))
             res1 = a2 + b2 * np.log(val)
-            val = c3 * (image - e3) + np.sqrt(d3 * (image - e3) * (image - e3) + 1)
+            val = arithm.inval(c3 * (image - e3) + np.sqrt(d3 * (image - e3) * (image - e3) + 1))
             res2  =a3 + b3 * np.log(val)
             
             return np.where(image < LP, a1 + b1 * image,
@@ -508,15 +498,9 @@ class InverseAsinh(Ghs):
                                     np.where((image < HPT), res2,
                                              (image - a4) / b4)))
 
-        
+# ghs example        
+if __name__ == '__main__':
+    from PIL import Image
+    img = np.asarray(Image.open('../img/linear.tif'))
+    Ghs(img).plot()
 
-
-
-
-
-
-
-
-
-
-            

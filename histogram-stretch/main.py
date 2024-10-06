@@ -6,11 +6,11 @@ from PIL import Image
 import numpy as np 
 
 # Testing of the classes
-i = input('Enter image path:')
+i = input('Enter image path: ')
 
 img = np.asarray(Image.open(i))
 
-x = input("'Enter stetch type. Options: mtf, asinh, ghs, ghs_inverse, ghs_asinh, ghs_asinh_inverse'")
+x = input("'Enter stetch type. Options: mtf, asinh, ghs, ghs_inverse, ghs_asinh, ghs_asinh_inverse': ")
 
 if x == 'mtf':
     mtf = ss.Mtf(img)
